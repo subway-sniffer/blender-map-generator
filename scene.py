@@ -1,8 +1,8 @@
-#import bpy
+import bpy
 import json
 import os
 import math
-#import bmesh
+import bmesh
 from pathlib import Path # for relative paths
 
 def create_material(name, color_rgba):
@@ -15,7 +15,7 @@ def create_material(name, color_rgba):
     return mat
 
 # --- Setup Paths ---
-BASE_DIR = Path(__file__).resolve().parent
+BASE_DIR = Path(bpy.path.abspath("//"))
 BLEND_PATH = BASE_DIR
 JSON_PATH = BASE_DIR / "polygon_example.json"
 #JSON_PATH = BASE_DIR / "scene.json"
@@ -62,6 +62,10 @@ if "planes" in data:
         bm.to_mesh(mesh)
         bm.free()
         mesh.update()
+
+        # Add Thickness
+        solidify_mod = obj3d.modifiers.new(name="Thickness", type='SOLIDIFY')
+        solidify_mod.thickness = 0.2
 
         # Apply Colors
         color = obj.get("color", [1.0, 1.0, 1.0, 1.0])
