@@ -141,8 +141,8 @@ if "assets" in data:
             # Global positioning
             obj.location = item.get("location", [0, 0, 0])
             if "rotation_z" in item:
-                obj.rotation_euler[2] = item["rotation_z"]
-                #obj.rotation_euler[2] = math.radians(item["rotation_z"])
+                #obj.rotation_euler[2] = item["rotation_z"]
+                obj.rotation_euler[2] = math.radians(item["rotation_z"])
 
         # --- OPTION B: STANDARD COLLECTION INSTANCING (Requires .blend files) ---
         else:
@@ -168,11 +168,11 @@ if "assets" in data:
 
                 obj.location = item.get("location", [0, 0, 0])
                 if "rotation_z" in item:
-                    obj.rotation_euler[2] = item["rotation_z"]
-                    #obj.rotation_euler[2] = math.radians(item["rotation_z"])
+                    #obj.rotation_euler[2] = item["rotation_z"]
+                    obj.rotation_euler[2] = math.radians(item["rotation_z"])
                 elif "rotation" in item:
-                    obj.rotation_euler = [a for a in item["rotation"]]
-                    #obj.rotation_euler = [math.radians(a) for a in item["rotation"]]
+                    #obj.rotation_euler = [a for a in item["rotation"]]
+                    obj.rotation_euler = [math.radians(a) for a in item["rotation"]]
 
                 # Handle Scaling and Fallbacks safely
                 base_scale = item.get("scale", [1.0, 1.0, 1.0])
