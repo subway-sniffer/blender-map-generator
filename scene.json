@@ -1,0 +1,56 @@
+{
+  "planes": [
+    {
+      "name": "Ground_Floor_Main",
+      "color": [0.123529, 0.901960, 0.905882, 1.0],
+      "vertices": [
+        [0.0, 0.0, 0.0],
+        [20.0, 0.0, 0.0],
+        [20.0, 15.0, 0.0],
+        [0.0, 15.0, 0.0]
+      ],
+      "holes": [
+        [
+          [3.3853, 1.1670, 0.0],
+          [3.3869, 1.3494, 0.0],
+          [3.6778, 1.3471, 0.0],
+          [3.6714, 1.1550, 0.0]
+        ],
+        [
+          [4.2437, 1.1530, 0.0],
+          [4.2474, 1.3735, 0.0],
+          [4.5580, 1.3659, 0.0],
+          [4.5568, 1.1579, 0.0]
+        ]
+      ]
+    },
+    {
+      "name": "Mezzanine_Platform",
+      "color": [0.5, 0.5, 0.5, 1.0],
+      "vertices": [
+        [10.0, 0.0, 3.0],
+        [20.0, 0.0, 3.0],
+        [20.0, 10.0, 3.0],
+        [10.0, 10.0, 3.0]
+      ]
+    }
+  ],
+  "assets": [
+    {
+      "comment": "This triggers your special procedural BMesh rule to build a smooth Unity-compatible staircase up to the 2.7m mezzanine.",
+      "blend": "Stair.blend", "location": [10.0, 2.0, 0.0], "rotation_z": 90.0, "target_height": 5.7
+    },
+    {
+      "comment": "An escalator that automatically stretches uniformly along X and Z to match the 4.0m or 1.0m target height without distortion.",
+      "blend": "Escalator.blend", "location": [2.0, 5.0, 0.0], "rotation_z": 0.0, "target_height": 1.0
+    },
+    {
+      "comment": "A standard asset that doesn't provide a target_height. The script automatically falls back to your base scale array.",
+      "blend": "MovingWalkway.blend", "location": [15.0, 12.0, 3.0], "rotation_z": 180.0, "scale": [1.0, 2.5, 1.0]
+    },
+    {
+      "comment": "An elevator asset that scales non-uniformly (stretches straight up) across multiple floors safely.",
+      "blend": "Elevator.blend", "location": [18.0, 2.0, 0.0], "rotation_z": 270.0, "target_height": 6.0
+    }
+  ]
+}
