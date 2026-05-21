@@ -37,9 +37,23 @@
   ],
   "assets": [
     {
-      "comment": "This triggers your special procedural BMesh rule to build a smooth Unity-compatible staircase up to the 2.7m mezzanine.",
-      "blend": "Stair.blend", "location": [10.0, 2.0, 0.0], "rotation_z": 90.0, "target_height": 5.7
+      "comment": "Stairs with hight, start_line and end_line",
+      "blend": "Stair.blend",
+      "target_height": 5.0,
+      "start_line": [ [-82.542515, 28.45604, -5], [-82.581967, 32.903292, -5] ],
+      "end_line": [ [-89.674972, 32.847589, 0], [-89.520119, 28.162874, 0] ],
+
+      "blend": "Stair.blend",
+      "target_height": 5.0,
+      "start_line": [ [-103.472544, 28.114566, -5], [-103.564469, 33.490408, -5] ],
+      "end_line": [ [-111.137133, 33.305493, 0], [-111.107272, 28.232899, 0] ],
+
+      "blend": "Stair.blend",
+      "target_height": 5.0,
+      "start_line": [ [-103.690162, 50.725287, -5], [-103.921515, 55.630088, -5] ],
+      "end_line": [ [-111.207591, 55.575483, 0], [-111.258464, 50.627446, 0] ]
     },
+
     {
       "comment": "An escalator that automatically stretches uniformly along X and Z to match the 4.0m or 1.0m target height without distortion.",
       "blend": "Escalator.blend", "location": [2.0, 5.0, 0.0], "rotation_z": 0.0, "target_height": 1.0

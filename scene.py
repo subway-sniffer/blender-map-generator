@@ -2,6 +2,7 @@ import bpy
 import json
 import os
 import math
+import mathutils
 import bmesh
 from pathlib import Path # for relative paths
 
@@ -18,7 +19,7 @@ def create_material(name, color_rgba):
 BASE_DIR = Path(bpy.path.abspath("//"))
 BLEND_PATH = BASE_DIR
 JSON_PATH = BASE_DIR / "polygon_example.json"
-#JSON_PATH = BASE_DIR / "scene.json"
+#JSON_PATH = BASE_DIR / "scene1.json"
 
 print(JSON_PATH)
 
@@ -81,68 +82,89 @@ if "assets" in data:
         # Isolate the name without extension and convert to lowercase
         asset_name_lower = os.path.splitext(item["blend"])[0].lower()
 
-        # --- OPTION A: PROCEDURAL UNITY-COMPATIBLE STAIR (Changed name string to 'stair') ---
+        # --- OPTION A: PROCEDURAL UNITY-COMPATIBLE STAIR ---
         if asset_name_lower == "stair":
-            mesh = bpy.data.meshes.new("Dynamic_Stair")
-            obj = bpy.data.objects.new("Dynamic_Stair_Obj", mesh)
-            bpy.context.collection.objects.link(obj)
+            # 1. Parse JSON inputs into Blender Vector objects
+            s1 = mathutils.Vector(item["start_line"][0])
+            s2 = mathutils.Vector(item["start_line"][1])
+            e1 = mathutils.Vector(item["end_line"][0])
+            e2 = mathutils.Vector(item["end_line"][1])
 
-            bm = bmesh.new()
+            target_height = float(item["target_height"])
 
-            total_height = item.get("target_height", 2.7)
-            step_height = 0.18
-            step_depth = 0.28
-            width = 1.2
+            # 2. Calculate spatial dimensions
+            # Width is determined by the length of the start line
+            stair_width = (s2 - s1).length
 
-            num_steps = max(1, round(total_height / step_height))
-            actual_h = total_height / num_steps
+            # Find the center points of the start line and end line
+            start_center = (s1 + s2) / 2.0
+            end_center = (e1 + e2) / 2.0
 
-            # Setup Vertex Groups for Unity Engine separation
-            visual_group = obj.vertex_groups.new(name="Visual_Steps")
-            collision_group = obj.vertex_groups.new(name="Collision_Ramp")
+            # Horizontal run vector (ignoring Z for the flat distance calculation)
+            run_vector = mathutils.Vector((end_center.x - start_center.x, end_center.y - start_center.y, 0.0))
+            total_run = run_vector.length
 
-            # 1. Generate the physical steps (Visuals)
-            for i in range(num_steps):
-                y_start = i * step_depth
-                y_end = (i + 1) * step_depth
-                z_end = (i + 1) * actual_h
+            # Calculate global Z rotation based on the direction the stair climbs
+            rotation_z = math.atan2(run_vector.y, run_vector.x)
 
-                coords = [
-                    (0, y_start, 0), (width, y_start, 0), (width, y_end, 0), (0, y_end, 0),
-                    (0, y_start, z_end), (width, y_start, z_end), (width, y_end, z_end), (0, y_end, z_end)
-                ]
-                step_verts = [bm.verts.new(c) for c in coords]
-                faces_indices = [(0,1,2,3), (4,5,6,7), (0,1,5,4), (2,3,7,6), (0,3,7,4), (1,2,6,5)]
-                for f_idx in faces_indices:
-                    bm.faces.new([step_verts[j] for j in f_idx])
+            # 3. Ergonomics & Step Math (Aiming for ~0.18m standard rise)
+            ideal_rise = 0.18
+            step_count = max(1, round(target_height / ideal_rise))
 
-            # 2. Generate the flat hidden incline slope (For smooth Unity Pathfinding/Raycasting)
-            total_depth = num_steps * step_depth
-            ramp_coords = [
-                (0, 0, 0), (width, 0, 0),
-                (width, total_depth, total_height), (0, total_depth, total_height)
-            ]
-            ramp_verts = [bm.verts.new(c) for c in ramp_coords]
-            bm.faces.new(ramp_verts)
+            step_height = target_height / step_count
+            step_depth = total_run / step_count
 
-            bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.001)
-            bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
-            bm.to_mesh(mesh)
-            bm.free()
-            mesh.update()
+            # --- CREATE VISUAL STAIRCASE ---
+            # Create a base step (centered at origin momentarily for clean scaling)
+            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0, 0))
+            visual_stair = bpy.context.active_object
+            visual_stair.name = "Inst_Staircase_Visual"
 
-            # 3. Sort vertices into their respective Unity Engine groups
-            for vertex in obj.data.vertices:
-                if math.isclose(vertex.co.y, total_depth, abs_tol=0.01) and math.isclose(vertex.co.z, total_height, abs_tol=0.01):
-                    collision_group.add([vertex.index], 1.0, 'ADD')
-                else:
-                    visual_group.add([vertex.index], 1.0, 'ADD')
+            # Scale dimensions (Cube size 1.0 means dimensions equal scale)
+            visual_stair.dimensions = (step_depth, stair_width, step_height)
+            bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
 
-            # Global positioning
-            obj.location = item.get("location", [0, 0, 0])
-            if "rotation_z" in item:
-                #obj.rotation_euler[2] = item["rotation_z"]
-                obj.rotation_euler[2] = math.radians(item["rotation_z"])
+            # Shift geometry data so the step pivots from its bottom-back-center edge
+            for vertex in visual_stair.data.vertices:
+                vertex.co.x += step_depth / 2.0
+                vertex.co.z += step_height / 2.0
+
+            # Add Array Modifier to build the rest of the steps
+            array_mod = visual_stair.modifiers.new(name="Stair_Array", type='ARRAY')
+            array_mod.count = step_count
+            array_mod.use_relative_offset = False
+            array_mod.use_constant_offset = True
+            array_mod.constant_offset_displace = (step_depth, 0.0, step_height)
+
+            # Position and rotate the final visual staircase asset globally
+            visual_stair.location = start_center
+            visual_stair.rotation_euler = (0.0, 0.0, rotation_z)
+
+            # --- CREATE COLLIDER RAMP ---
+            # Create a cube to reshape into a wedge/ramp
+            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0, 0))
+            collider_ramp = bpy.context.active_object
+            collider_ramp.name = "Staircase_UCX"  # Unity auto-convex naming convention
+
+            # Scale it to match the overall bounding box of the stairs
+            # We add a small thickness (e.g., 0.1m) to give Unity physics a solid volume
+            ramp_thickness = 0.1
+            collider_ramp.dimensions = (total_run, stair_width, ramp_thickness)
+            bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+
+            # Shift geometry so it pivots properly from bottom-back-center
+            for vertex in collider_ramp.data.vertices:
+                vertex.co.x += total_run / 2.0
+                # Shear vertices to match the incline angle perfectly
+                progress_ratio = vertex.co.x / total_run
+                vertex.co.z += (progress_ratio * target_height) - (ramp_thickness / 2.0)
+
+            # Position and rotate the collider ramp to match the visual stairs perfectly
+            collider_ramp.location = start_center
+            collider_ramp.rotation_euler = (0.0, 0.0, rotation_z)
+
+            # Deselect everything to finish cleanly
+            bpy.ops.object.select_all(action='DESELECT')
 
         # --- OPTION B: STANDARD COLLECTION INSTANCING (Requires .blend files) ---
         else:
