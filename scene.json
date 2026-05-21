@@ -59,7 +59,7 @@
     {
       "comment": "An escalator that automatically stretches uniformly along X and Z to match the 4.0m or 1.0m target height without distortion.",
       "blend": "Escalator.blend",
-      "start_line": [ [-369.66134, 137.800642, -9], [-373.055359, 137.726248, -9] ],
+      "start_line": [ [-369.66134, 137.800642, -10], [-373.055359, 137.726248, -10] ],
       "end_line": [ [-369.66134, 147.800642, 0], [-373.055359, 147.726248, 0] ]
     },
     {

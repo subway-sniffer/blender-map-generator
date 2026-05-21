@@ -216,8 +216,8 @@ if "assets" in data:
             target_width  = np.linalg.norm(start_line[1] - start_line[0])
 
             # NATIVE ASSET SIZE (The bounding box of the asset inside the source collection)
-            # Need to edit; height value seems wrong
-            NATIVE = { "length_x": 12.0307, "width_y": 1.3332, "height_z": 4.8349 }
+            #NATIVE = { "length_x": 12.0307, "width_y": 1.3332, "height_z": 4.8349 }
+            NATIVE = { "length_x": 12.0307, "width_y": 1.3332, "height_z": 3.95695 }
 
             # --- 3. SCALE FACTORS ---
             # Applying scale directly to the Empty container shapes the entire instanced collection
