@@ -118,7 +118,7 @@ if "assets" in data:
             # Create a base step (centered at origin momentarily for clean scaling)
             bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0, 0))
             visual_stair = bpy.context.active_object
-            visual_stair.name = "Inst_Staircase_Visual"
+            visual_stair.name = "Staircase_Visual"
 
             # Scale dimensions (Cube size 1.0 means dimensions equal scale)
             visual_stair.dimensions = (step_depth, stair_width, step_height)
