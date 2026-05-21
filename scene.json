@@ -67,6 +67,20 @@
     {
       "comment": "An elevator asset that scales non-uniformly (stretches straight up) across multiple floors safely.",
       "blend": "Elevator.blend", "location": [18.0, 2.0, 0.0], "rotation_z": 270.0, "target_height": 6.0
+    },
+
+    {
+      "comment": "A subway train asset requires a center point, not end points. At most cases, rotation_z is unecessary.",
+      "blend": "Subway.blend",
+      "location": [-151.134088, 44.841655, -7],
+      "rotation_z": 0.0,
+      "scale": [8,1,1]
+    },
+    {
+      "blend": "Subway.blend",
+      "location": [-151.5114715, 39.210308, -7],
+      "rotation_z": 0.0,
+      "scale": [7,1,1]
     }
   ]
 }
