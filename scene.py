@@ -19,7 +19,7 @@ def create_material(name, color_rgba):
 BASE_DIR = Path(bpy.path.abspath("//"))
 BLEND_PATH = BASE_DIR
 JSON_PATH = BASE_DIR / "polygon_example.json"
-#JSON_PATH = BASE_DIR / "scene1.json"
+#JSON_PATH = BASE_DIR / "scene.json"
 
 print(JSON_PATH)
 
