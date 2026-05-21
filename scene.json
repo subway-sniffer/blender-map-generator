@@ -37,20 +37,20 @@
   ],
   "assets": [
     {
-      "comment": "Stairs with hight, start_line and end_line",
-      "blend": "Stair.blend",
+      "comment": "Stairs with height, start_line and end_line",
+      "blend": "1Stair.blend",
       "target_height": 5.0,
       "start_line": [ [-82.542515, 28.45604, -5], [-82.581967, 32.903292, -5] ],
       "end_line": [ [-89.674972, 32.847589, 0], [-89.520119, 28.162874, 0] ]
     },
     {
-      "blend": "Stair.blend",
+      "blend": "1Stair.blend",
       "target_height": 5.0,
       "start_line": [ [-103.472544, 28.114566, -5], [-103.564469, 33.490408, -5] ],
       "end_line": [ [-111.137133, 33.305493, 0], [-111.107272, 28.232899, 0] ]
     },
     {
-      "blend": "Stair.blend",
+      "blend": "1Stair.blend",
       "target_height": 5.0,
       "start_line": [ [-103.690162, 50.725287, -5], [-103.921515, 55.630088, -5] ],
       "end_line": [ [-111.207591, 55.575483, 0], [-111.258464, 50.627446, 0] ]
@@ -58,11 +58,13 @@
 
     {
       "comment": "An escalator that automatically stretches uniformly along X and Z to match the 4.0m or 1.0m target height without distortion.",
-      "blend": "Escalator.blend", "location": [2.0, 5.0, 0.0], "rotation_z": 0.0, "target_height": 1.0
+      "blend": "Escalator.blend",
+      "start_line": [ [-369.66134, 137.800642, -9], [-373.055359, 137.726248, -9] ],
+      "end_line": [ [-369.66134, 147.800642, 0], [-373.055359, 147.726248, 0] ]
     },
     {
       "comment": "A standard asset that doesn't provide a target_height. The script automatically falls back to your base scale array.",
-      "blend": "MovingWalkway.blend", "location": [15.0, 12.0, 3.0], "rotation_z": 180.0, "scale": [1.0, 2.5, 1.0]
+      "blend": "1MovingWalkway.blend", "location": [15.0, 12.0, 3.0], "rotation_z": 180.0, "scale": [1.0, 2.5, 1.0]
     },
     {
       "comment": "An elevator asset that scales non-uniformly (stretches straight up) across multiple floors safely.",

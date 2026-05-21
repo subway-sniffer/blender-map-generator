@@ -5,6 +5,7 @@ import math
 import mathutils
 import bmesh
 from pathlib import Path # for relative paths
+import numpy as np # for escalators
 
 def create_material(name, color_rgba):
     mat = bpy.data.materials.new(name=name)
@@ -166,7 +167,81 @@ if "assets" in data:
             # Deselect everything to finish cleanly
             bpy.ops.object.select_all(action='DESELECT')
 
-        # --- OPTION B: STANDARD COLLECTION INSTANCING (Requires .blend files) ---
+
+
+
+        # --- OPTION B: Escalator.blend
+        elif asset_name_lower == "escalator":
+            # --- 1. HANDLE COLLECTION INSTANCING ---
+            blend_file = os.path.join(BLEND_PATH, item["blend"])
+            collection_name = os.path.splitext(item["blend"])[0]
+            coll = bpy.data.collections.get(collection_name)
+
+            if not coll:
+                if os.path.exists(blend_file):
+                    with bpy.data.libraries.load(blend_file) as (data_from, data_to):
+                        if collection_name in data_from.collections:
+                            data_to.collections = [collection_name]
+                    coll = bpy.data.collections.get(collection_name)
+                else:
+                    print(f"Warning: File missing at {blend_file}")
+                    continue
+
+            if coll:
+                # Target unique name from JSON (fallback to unique instance name if not provided)
+                target_name = item.get("name", f"Inst_{collection_name}")
+
+                # Create the Empty object that acts as the instance container
+                obj = bpy.data.objects.new(target_name, None)
+                obj.instance_type = 'COLLECTION'
+                obj.instance_collection = coll
+                bpy.context.collection.objects.link(obj)
+            else:
+                print(f"Error: Collection '{collection_name}' not found. Make sure it is appended first.")
+                continue # Skip this asset if the underlying collection is missing
+
+            # --- 2. CALCULATE GEOMETRY ---
+            start_line = np.array(item["start_line"], dtype=float)
+            end_line   = np.array(item["end_line"], dtype=float)
+
+            # CENTERS
+            start_center = start_line.mean(axis=0)
+            end_center   = end_line.mean(axis=0)
+
+            delta = end_center - start_center
+
+            # TARGET GEOMETRY
+            target_length = np.linalg.norm(delta[:2]) # horizontal travel (XY plane)
+            target_height = delta[2]                  # height difference
+            target_width  = np.linalg.norm(start_line[1] - start_line[0])
+
+            # NATIVE ASSET SIZE (The bounding box of the asset inside the source collection)
+            # Need to edit; height value seems wrong
+            NATIVE = { "length_x": 12.0307, "width_y": 1.3332, "height_z": 4.8349 }
+
+            # --- 3. SCALE FACTORS ---
+            # Applying scale directly to the Empty container shapes the entire instanced collection
+            scale_x = target_length / NATIVE["length_x"]
+            scale_y = target_width  / NATIVE["width_y"]
+            scale_z = target_height / NATIVE["height_z"]
+
+            obj.scale = (scale_x, scale_y, scale_z)
+
+            # --- 4. ROTATION (yaw in XY plane) ---
+            yaw = math.atan2(delta[1], delta[0])
+            obj.rotation_mode = 'XYZ'
+            obj.rotation_euler = (0.0, 0.0, yaw)
+
+            # --- 5. POSITION ---
+            # Since the underlying collection objects are correctly authored relative to their local 0,0,0,
+            # placing the Empty object at start_center will snap it perfectly onto your plane.
+            obj.location = start_center
+
+
+
+
+
+        # --- OPTION C: STANDARD COLLECTION INSTANCING (Requires .blend files) ---
         else:
             blend_file = os.path.join(BLEND_PATH, item["blend"])
             collection_name = os.path.splitext(item["blend"])[0]
