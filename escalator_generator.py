@@ -28,6 +28,10 @@ def get_material(name, color, metallic=0.6, roughness=0.35):
     if name in bpy.data.materials:
         return bpy.data.materials[name]
     mat = bpy.data.materials.new(name=name)
+
+    # IMPORTANT: viewport/solid mode color
+    mat.diffuse_color = (*color, 1.0)
+
     mat.use_nodes = True
     bsdf = mat.node_tree.nodes.get("Principled BSDF")
     if bsdf:
@@ -63,15 +67,16 @@ def add_box(bm, x0, x1, y0, y1, z0, z1):
     bm.faces.new([v[3], v[0], v[4], v[7]])
 
 
-def bm_to_object(bm, name, collection, material=None):
+def bm_to_object(bm, name, collection, materials=None):
     me = bpy.data.meshes.new(name)
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces[:])
     bm.to_mesh(me)
     bm.free()
     obj = bpy.data.objects.new(name, me)
     collection.objects.link(obj)
-    if material:
-        me.materials.append(material)
+    if materials:
+        for mat in materials:
+            me.materials.append(mat)
     return obj
 
 
@@ -107,8 +112,10 @@ def generate_escalator(
     bpy.context.scene.collection.children.link(coll)
 
     # ---- 머티리얼 ----
-    mat_step = get_material("Esc_Step", (0.55, 0.55, 0.58), metallic=0.7, roughness=0.3)
-    mat_balu = get_material("Esc_Balustrade", (0.15, 0.15, 0.18), metallic=0.2, roughness=0.4)
+    mat_step = get_material("Esc_Step", (0.02, 0.02, 0.02), metallic=0.7, roughness=0.25)
+    # Yellow line for step
+    mat_step_yellow = get_material("Esc_Step_Yellow", (1.0, 0.85, 0.0), metallic=0.2, roughness=0.45)
+    mat_balu = get_material("Esc_Balustrade", (0.89, 0.89, 0.89), metallic=0.2, roughness=0.4)
     mat_rail = get_material("Esc_Handrail", (0.04, 0.04, 0.04), metallic=0.0, roughness=0.5)
 
     # ---- 기하 계산 ----
@@ -140,10 +147,37 @@ def generate_escalator(
         x1 = (i + 1) * s_run
 
         # tread (수평 발판)
-        add_box(bm,
-                x0, x1,
-                -width/2, width/2,
-                z_top - step_thickness, z_top)
+        tread_x0 = x0
+        tread_x1 = x1
+        tread_z0 = z_top - step_thickness
+        tread_z1 = z_top
+
+        before_faces = set(bm.faces)
+
+        add_box(
+            bm,
+            tread_x0, tread_x1,
+            -width/2, width/2,
+            tread_z0, tread_z1
+        )
+
+        # newly created faces
+        new_faces = [f for f in bm.faces if f not in before_faces]
+
+        # default = black step material
+        for f in new_faces:
+            f.material_index = 0
+
+        # ------------------------------------------------
+        # yellow front safety strip
+        # detect the FRONT vertical face of the tread
+        # ------------------------------------------------
+        front_face = min(
+            new_faces,
+            key=lambda f: f.calc_center_median().x
+        )
+
+        front_face.material_index = 1
 
         # riser (스텝 정면 수직면)
         z_bot = i * s_rise  # 이전 스텝 윗면 높이
@@ -158,7 +192,7 @@ def generate_escalator(
             -width/2, width/2,
             rise - step_thickness, rise)
 
-    bm_to_object(bm, f"{name}_Steps", coll, mat_step)
+    bm_to_object(bm, f"{name}_Steps", coll, materials=[mat_step, mat_step_yellow])
 
     # ================================================================
     # 2. 발루스트레이드 (양옆 패널)
@@ -193,7 +227,7 @@ def generate_escalator(
                           outer_verts[ni], inner_verts[ni]])
 
         suffix = "L" if side > 0 else "R"
-        bm_to_object(bm, f"{name}_Balustrade_{suffix}", coll, mat_balu)
+        bm_to_object(bm, f"{name}_Balustrade_{suffix}", coll, materials=[mat_balu])
 
     build_balustrade(+1)
     build_balustrade(-1)
