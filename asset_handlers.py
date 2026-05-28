@@ -90,12 +90,42 @@ def escalator(item):
     import escalator_generator
 
     # 2. Extract calculations straight from raw vectors
-    s1 = mathutils.Vector(item["start_line"][0])
-    e1 = mathutils.Vector(item["end_line"][0])
     target_height = float(item.get("target_height", 4.0))
 
+    start_a = mathutils.Vector(item["start_line"][0])
+    start_b = mathutils.Vector(item["start_line"][1])
+
+    end_a = mathutils.Vector(item["end_line"][0])
+    end_b = mathutils.Vector(item["end_line"][1])
+
+    # Centers
+    start_center = (start_a + start_b) * 0.5
+    end_center = (end_a + end_b) * 0.5
+
+    # Width from start line
+    width = (end_b - end_a).to_2d().length
+    if width < 1:
+        width = 1
+    else:
+        width *= 0.7
+
+    # Direction in XY plane
+    dir_xy = mathutils.Vector((
+        end_center.x - start_center.x,
+        end_center.y - start_center.y,
+        0.0
+    ))
+
+    horizontal_run = dir_xy.length
+
+    # Vertical rise
+    rise = end_center.z - start_center.z
+
+    # Rotation around Z
+    rotation_z = math.atan2(dir_xy.y, dir_xy.x)
+
     # Determine horizontal run distance based on the vector length between vectors
-    horizontal_run = mathutils.Vector((e1.x - s1.x, e1.y - s1.y, 0.0)).length
+    horizontal_run = (end_center - start_center).to_2d().length
     if horizontal_run == 0:
         horizontal_run = 6.928
 
@@ -105,9 +135,11 @@ def escalator(item):
     # 3. Trigger the standalone builder's main generation function
     escalator_generator.generate_escalator(
         name=esc_name,
-        origin=s1,
+        origin=start_center,
         rise=target_height,
         run=horizontal_run,
+        rotation_z=rotation_z,
+        width=width * 0.8,
         replace_existing=False
     )
 

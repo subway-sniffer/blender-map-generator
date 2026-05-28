@@ -18,7 +18,7 @@
 import bpy
 import bmesh
 from math import atan, degrees, sqrt
-from mathutils import Vector
+import mathutils
 
 
 # ================================================================
@@ -90,6 +90,8 @@ def generate_escalator(
     run=6.928,               # 경사 구간 수평 길이 (m)
                              #   30° → run = rise × 1.732
                              #   35° → run = rise × 1.428
+    rotation_z=0,
+
     width=1.0,               # 스텝 폭 (m)
     top_landing=1.0,         # 상단 평탄 구간 길이 (m)
     bot_landing=1.0,         # 하단 평탄 구간 길이 (m)
@@ -98,7 +100,7 @@ def generate_escalator(
     balustrade_thickness=0.04,
     handrail_radius=0.035,
     step_thickness=0.04,
-    replace_existing=True,
+    replace_existing=True
 ):
     """파라메트릭 정적 에스컬레이터 생성. 컬렉션 이름은 `name`."""
 
@@ -266,15 +268,17 @@ def generate_escalator(
     # ================================================================
     # 4. 원점 이동
     # ================================================================
-    if origin != (0.0, 0.0, 0.0):
-        for obj in coll.objects:
-            obj.location = (
-                obj.location.x + origin[0],
-                obj.location.y + origin[1],
-                obj.location.z + origin[2],
-            )
 
-    return coll
+    # rotation_z must be added as a new parameter to the function
+    # e.g., def generate_escalator(..., rotation_z=0.0):
+    # rotation around Z in radians
+    transform_matrix = (
+        mathutils.Matrix.Translation(origin) @
+        mathutils.Matrix.Rotation(rotation_z, 4, 'Z')
+    )
+
+    for obj in coll.objects:
+        obj.matrix_world = transform_matrix @ obj.matrix_world
 
 
 # ================================================================
@@ -290,6 +294,7 @@ if __name__ == "__main__":
         width=1.0,
         top_landing=1.5,
         bot_landing=1.5,
+        rotation_z=0
     )
 
     # 예시 2: 같은 위치에 반대쪽 에스컬레이터를 만들고 싶다면 (옆에 나란히)
