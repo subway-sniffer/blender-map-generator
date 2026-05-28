@@ -104,30 +104,45 @@ def escalator(item):
 
     # Width from start line
     width = (end_b - end_a).to_2d().length
-    if width < 1:
-        width = 1
-    else:
-        width *= 0.7
 
-    # Direction in XY plane
-    dir_xy = mathutils.Vector((
+
+
+    # 1. Get the direction vector of the end landing line itself
+    end_line_vector = end_b - end_a
+
+    # 2. Calculate the base perpendicular vector (facing the stairs' orientation)
+    dir_end_perpendicular = mathutils.Vector((
+        -end_line_vector.y,
+        end_line_vector.x,
+        0.0
+    ))
+    dir_end_perpendicular.normalize()
+
+    # 3. Get the actual movement direction from start to end center
+    travel_dir = mathutils.Vector((
         end_center.x - start_center.x,
         end_center.y - start_center.y,
         0.0
     ))
 
-    horizontal_run = dir_xy.length
+    horizontal_run = travel_dir.length
+    travel_dir.normalize()
+
+    # 4. Use a dot product to check if our perpendicular vector is pointing
+    # the opposite way of our actual travel direction.
+    # If the dot product is negative, they are facing away from each other.
+    if dir_end_perpendicular.dot(travel_dir) < 0:
+        # Flip it 180 degrees!
+        dir_end_perpendicular = -dir_end_perpendicular
+
+    # 5. Calculate final rotation based on the auto-corrected vector
+    rotation_z = math.atan2(dir_end_perpendicular.y, dir_end_perpendicular.x)
 
     # Vertical rise
     rise = end_center.z - start_center.z
 
-    # Rotation around Z
-    rotation_z = math.atan2(dir_xy.y, dir_xy.x)
-
     # Determine horizontal run distance based on the vector length between vectors
-    horizontal_run = (end_center - start_center).to_2d().length
-    if horizontal_run == 0:
-        horizontal_run = 6.928
+    #horizontal_run = (end_center - start_center).to_2d().length
 
     esc_name = f"Escalator_{ESCALATOR_COUNTER:03d}"
     ESCALATOR_COUNTER += 1
@@ -139,7 +154,7 @@ def escalator(item):
         rise=target_height,
         run=horizontal_run,
         rotation_z=rotation_z,
-        width=width * 0.8,
+        width=width,
         replace_existing=False
     )
 
@@ -148,5 +163,14 @@ def elevator(item):
     pass
 
 def subway(item):
+    pass
+
+def toilet(item):
+    pass
+
+def gates(item):
+    pass
+
+def exit_number(item):
     pass
 
