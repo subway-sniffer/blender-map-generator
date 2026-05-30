@@ -203,7 +203,7 @@ def elevator(item):
     obj.rotation_euler[2] = math.radians(rot_z_deg)
 
     # Scale (hardcoded)
-    obj.scale = (0.7, 1, 10)
+    obj.scale = (1, 1, 1)
 
 def moving_walkway(item):
     pass
