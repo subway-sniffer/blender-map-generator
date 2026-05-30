@@ -19,9 +19,7 @@ def create_material(name, color_rgba):
 # --- Setup Paths ---
 BASE_DIR = Path(bpy.path.abspath("//"))
 BLEND_PATH = BASE_DIR
-JSON_PATH = "/home/pigritia/Documents/Capstone Design II/subway-polygon-extractor/examples/polygon_example.json"
-#JSON_PATH = BASE_DIR / "polygon_example.json"
-#JSON_PATH = BASE_DIR / "scene.json"
+JSON_PATH = BASE_DIR / "scene.json"
 
 # Convert the Path object to a string and add it to Python's search path
 if str(BASE_DIR) not in sys.path:
@@ -84,8 +82,10 @@ if "planes" in data:
 # --- THE REGISTRY MAP ---
 ASSET_REGISTRY = {
     "stair": asset_handlers.stair,
-    "escalator": asset_handlers.escalator
-    #"subway": asset_handlers.generic
+    "escalator": asset_handlers.escalator,
+    "elevator": asset_handlers.elevator,
+    "movingwalkway": asset_handlers.moving_walkway,
+    "subway": asset_handlers.subway
 }
 
 if "assets" in data:
@@ -95,4 +95,5 @@ if "assets" in data:
         if asset_name in ASSET_REGISTRY:
             ASSET_REGISTRY[asset_name](item)
         else:
-            print(f"Warning: No match found for '{asset_name}'")
+            asset_handlers.generic(item, asset_name)
+            #print(f"Warning: No match found for '{asset_name}'")
