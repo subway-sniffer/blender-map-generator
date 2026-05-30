@@ -83,79 +83,165 @@ def stair(item):
             visual_group.add([vertex.index], 1.0, 'ADD')
 
 ESCALATOR_COUNTER = 0
-def escalator(item):
-    global ESCALATOR_COUNTER
-    """Pipeline entry point that dynamically imports the standalone builder."""
-    # 1. Import from your separate PC file on demand
-    import escalator_generator
+ESCALATOR_BALUSTRADE_THICKNESS = 0.04
+ESCALATOR_HANDRAIL_RADIUS = 0.035
+ESCALATOR_MIN_STEP_WIDTH = 0.2
 
-    # 2. Extract calculations straight from raw vectors
-    target_height = float(item.get("target_height", 4.0))
+
+def _lerp_unclamped(a, b, t):
+    return a + ((b - a) * t)
+
+
+def _line_width_2d(a, b):
+    return (b - a).to_2d().length
+
+
+def _line_trimmed_to_width(a, b, target_width):
+    """Return line endpoints centered on the original line with a fixed 2D width."""
+    center = (a + b) * 0.5
+    direction = b - a
+    direction.z = 0.0
+    if direction.length == 0:
+        return a, b
+    direction.normalize()
+    half = target_width * 0.5
+    return center - (direction * half), center + (direction * half)
+
+
+def _escalator_step_width_from_outer_width(outer_width):
+    """Return generator step width when JSON line width represents visual outer width."""
+    side_extra = max(
+        ESCALATOR_BALUSTRADE_THICKNESS,
+        (ESCALATOR_BALUSTRADE_THICKNESS * 0.5) + ESCALATOR_HANDRAIL_RADIUS,
+    )
+    return max(ESCALATOR_MIN_STEP_WIDTH, outer_width - (side_extra * 2.0))
+
+
+def _map_escalator_point_to_lines(point, start_a, start_b, end_a, end_b, run, width, local_rise):
+    """Map a local escalator point onto the exact start/end line pair."""
+    if run == 0:
+        t = 0.0
+    else:
+        t = point.x / run
+    if width == 0:
+        u = 0.5
+    else:
+        u = (point.y / width) + 0.5
+
+    start_cross = _lerp_unclamped(start_a, start_b, u)
+    end_cross = _lerp_unclamped(end_a, end_b, u)
+    base = _lerp_unclamped(start_cross, end_cross, t)
+    ramp_z = local_rise * t
+    vertical_offset = point.z - ramp_z
+    return mathutils.Vector((base.x, base.y, base.z + vertical_offset))
+
+
+def _warp_collection_to_escalator_lines(collection, start_a, start_b, end_a, end_b, run, width, local_rise):
+    """Deform generated escalator objects so their lower and upper edges match JSON lines."""
+    for obj in collection.objects:
+        obj.matrix_world = mathutils.Matrix.Identity(4)
+        if obj.type == "MESH":
+            for vertex in obj.data.vertices:
+                vertex.co = _map_escalator_point_to_lines(
+                    vertex.co,
+                    start_a,
+                    start_b,
+                    end_a,
+                    end_b,
+                    run,
+                    width,
+                    local_rise,
+                )
+            obj.data.update()
+        elif obj.type == "CURVE":
+            for spline in obj.data.splines:
+                points = spline.bezier_points if spline.bezier_points else spline.points
+                for point in points:
+                    if hasattr(point, "co") and len(point.co) == 4:
+                        mapped = _map_escalator_point_to_lines(
+                            mathutils.Vector((point.co.x, point.co.y, point.co.z)),
+                            start_a,
+                            start_b,
+                            end_a,
+                            end_b,
+                            run,
+                            width,
+                            local_rise,
+                        )
+                        point.co = (mapped.x, mapped.y, mapped.z, point.co.w)
+                    else:
+                        point.co = _map_escalator_point_to_lines(
+                            point.co,
+                            start_a,
+                            start_b,
+                            end_a,
+                            end_b,
+                            run,
+                            width,
+                            local_rise,
+                        )
+
+
+def escalator(item):
+    """Create an escalator fitted exactly between start_line and end_line."""
+    global ESCALATOR_COUNTER
+    import escalator_generator
 
     start_a = mathutils.Vector(item["start_line"][0])
     start_b = mathutils.Vector(item["start_line"][1])
-
     end_a = mathutils.Vector(item["end_line"][0])
     end_b = mathutils.Vector(item["end_line"][1])
 
-    # Centers
     start_center = (start_a + start_b) * 0.5
     end_center = (end_a + end_b) * 0.5
 
-    # Width from start line
-    width = (end_b - end_a).to_2d().length
-
-
-
-    # 1. Get the direction vector of the end landing line itself
-    end_line_vector = end_b - end_a
-
-    # 2. Calculate the base perpendicular vector (facing the stairs' orientation)
-    dir_end_perpendicular = mathutils.Vector((
-        -end_line_vector.y,
-        end_line_vector.x,
-        0.0
-    ))
-    dir_end_perpendicular.normalize()
-
-    # 3. Get the actual movement direction from start to end center
-    travel_dir = mathutils.Vector((
-        end_center.x - start_center.x,
-        end_center.y - start_center.y,
-        0.0
-    ))
-
-    horizontal_run = travel_dir.length
-    travel_dir.normalize()
-
-    # 4. Use a dot product to check if our perpendicular vector is pointing
-    # the opposite way of our actual travel direction.
-    # If the dot product is negative, they are facing away from each other.
-    if dir_end_perpendicular.dot(travel_dir) < 0:
-        # Flip it 180 degrees!
-        dir_end_perpendicular = -dir_end_perpendicular
-
-    # 5. Calculate final rotation based on the auto-corrected vector
-    rotation_z = math.atan2(dir_end_perpendicular.y, dir_end_perpendicular.x)
-
-    # Vertical rise
     rise = end_center.z - start_center.z
-
-    # Determine horizontal run distance based on the vector length between vectors
-    #horizontal_run = (end_center - start_center).to_2d().length
+    local_rise = abs(rise)
+    horizontal_run = (end_center - start_center).to_2d().length
+    start_width = _line_width_2d(start_a, start_b)
+    end_width = _line_width_2d(end_a, end_b)
+    if start_center.z > end_center.z:
+        outer_width = start_width
+    else:
+        outer_width = end_width
+    if horizontal_run <= 0 or outer_width <= 0:
+        print("Warning: escalator requires non-zero start/end distance and width")
+        return
+    step_width = _escalator_step_width_from_outer_width(outer_width)
+    if start_center.z <= end_center.z:
+        start_a, start_b = _line_trimmed_to_width(start_a, start_b, outer_width)
+    else:
+        end_a, end_b = _line_trimmed_to_width(end_a, end_b, outer_width)
 
     esc_name = f"Escalator_{ESCALATOR_COUNTER:03d}"
     ESCALATOR_COUNTER += 1
 
-    # 3. Trigger the standalone builder's main generation function
     escalator_generator.generate_escalator(
         name=esc_name,
-        origin=start_center,
-        rise=target_height,
+        origin=(0.0, 0.0, 0.0),
+        rise=local_rise,
         run=horizontal_run,
-        rotation_z=rotation_z,
-        width=width,
+        rotation_z=0.0,
+        width=step_width,
+        top_landing=0.0,
+        bot_landing=0.0,
+        balustrade_thickness=ESCALATOR_BALUSTRADE_THICKNESS,
+        handrail_radius=ESCALATOR_HANDRAIL_RADIUS,
         replace_existing=False
+    )
+    collection = bpy.data.collections.get(esc_name)
+    if collection is None:
+        print(f"Warning: escalator collection was not created: {esc_name}")
+        return
+    _warp_collection_to_escalator_lines(
+        collection,
+        start_a,
+        start_b,
+        end_a,
+        end_b,
+        horizontal_run,
+        outer_width,
+        local_rise,
     )
 
 def elevator(item):
@@ -173,4 +259,3 @@ def gates(item):
 
 def exit_number(item):
     pass
-
