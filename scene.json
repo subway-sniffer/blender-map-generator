@@ -54,6 +54,11 @@
     {
       "comment": "location is the bottom center of the front door and rotation_z should be expressed in degrees",
       "blend": "Elevator.blend", "location": [18.0, 2.0, 12.0], "rotation_z": 270.0
+    },
+
+    {
+      "comment": "A standard asset that doesn't provide a target_height. The script automatically falls back to your base scale array.",
+      "blend": "MovingWalkway.blend", "start": [15.0, 12.0, 3.0], "end": [-15.0, -6.0, 3.0], "rotation_z": 180.0, "scale": [3.0, 1.0, 1.0]
     }
   ]
 }
