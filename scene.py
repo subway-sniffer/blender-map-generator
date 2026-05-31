@@ -19,7 +19,6 @@ def create_material(name, color_rgba):
 # --- Setup Paths ---
 BASE_DIR = Path(bpy.path.abspath("//"))
 BLEND_PATH = BASE_DIR
-#JSON_PATH = BASE_DIR / "polygon_example.json"
 JSON_PATH = BASE_DIR / "scene.json"
 
 # Convert the Path object to a string and add it to Python's search path
@@ -85,8 +84,8 @@ ASSET_REGISTRY = {
     "stair": asset_handlers.stair,
     "escalator": asset_handlers.escalator,
     "elevator": asset_handlers.elevator,
-    "movingwalkway": asset_handlers.moving_walkway
-    #"subway": asset_handlers.subway
+    "movingwalkway": asset_handlers.moving_walkway,
+    "subway": asset_handlers.subway
 }
 
 if "assets" in data:

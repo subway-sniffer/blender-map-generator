@@ -57,8 +57,13 @@
     },
 
     {
-      "comment": "A standard asset that doesn't provide a target_height. The script automatically falls back to your base scale array.",
+      "comment": "A moving walkway that is placed at the mid point of start and end. It will also be rotated and scaled by its corresponding argument.",
       "blend": "MovingWalkway.blend", "start": [15.0, 12.0, 3.0], "end": [-15.0, -6.0, 3.0], "rotation_z": 180.0, "scale": [3.0, 1.0, 1.0]
+    },
+
+    {
+      "comment": "A subway train asset which requires a center point, NOT end points..",
+      "blend": "Subway.blend", "start": [-151.134088, 44.841655, -7], "end": [-120.134088, 30.841655, -7], "rotation_z": 0.0, "scale": [8.0, 1.0, 1.0]
     }
   ]
 }
