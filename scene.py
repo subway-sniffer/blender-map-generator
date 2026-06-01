@@ -70,6 +70,10 @@ if "planes" in data:
         bm.free()
         mesh.update()
 
+        # Add Thickness
+        solidify_mod = obj3d.modifiers.new(name="Thickness", type='SOLIDIFY')
+        solidify_mod.thickness = 0.1
+
         # Apply Colors
         color = obj.get("color", [1.0, 1.0, 1.0, 1.0])
         mat = create_material(f"Mat_{name}", color)
