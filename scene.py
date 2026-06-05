@@ -90,7 +90,7 @@ ASSET_REGISTRY = {
     "elevator": asset_handlers.elevator,
     "movingwalkway": asset_handlers.moving_walkway,
     "subway": asset_handlers.subway,
-    "ticketgates": asset_handlers.gates
+    "ticketgate": asset_handlers.gate
 }
 
 if "assets" in data:

@@ -62,8 +62,13 @@
     },
 
     {
-      "comment": "A subway train asset which requires a center point, NOT end points..",
+      "comment": "A subway train asset which requires two points, NOT end points..",
       "blend": "Subway.blend", "start": [-151.134088, 44.841655, -7], "end": [-120.134088, 30.841655, -7], "rotation_z": 0.0, "scale": [8.0, 1.0, 1.0]
+    },
+
+    {
+      "comment": "A ticket gate which requires a center point and its rotation degree. The scale value is barely needed.",
+      "blend": "TicketGate.blend", "location": [10.0, 2.0 , 5.0], "rotation_z": 0.0, "scale": [1.0, 1.0, 1.0]
     }
   ]
 }

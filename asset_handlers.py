@@ -403,8 +403,7 @@ def subway(item):
 
     obj.scale = (scale_x, scale_y, scale_z)
 
-
-def gates(item):
+def gate(item):
 
     # --- 1. HANDLE COLLECTION INSTANCING ---
     blend_file = os.path.join(BLEND_PATH, item["blend"])
@@ -435,14 +434,13 @@ def gates(item):
         print(f"Error: Collection '{collection_name}' not found. Make sure it is appended first.")
 
     # --- 2. APPLY LOCATION AND ROTATION ---
+    # --- 2. APPLY LOCATION AND ROTATION ---
     # Extract position and rotation from JSON
-    start_vec = mathutils.Vector(item["start"])
-    end_vec = mathutils.Vector(item["end"])
+    loc_data = item["location"]
     rot_z_deg = item.get("rotation_z", 0.0) # Defaults to 0 if missing
 
-    # Location
-    mid_vec = (start_vec + end_vec) * 0.5
-    obj.location = mid_vec
+    # Apply location directly to the Empty container
+    obj.location = mathutils.Vector((loc_data[0], loc_data[1], loc_data[2]))
 
     # Z rotation
     obj.rotation_euler[2] = math.radians(rot_z_deg)
@@ -454,7 +452,7 @@ def gates(item):
 
     target_length, target_width, target_height = item["scale"]
     # Applying scale directly to the Empty container shapes the entire instanced collection
-    scale_x = target_length / NATIVE["length_x"]
+    scale_x = target_length # / NATIVE["length_x"]
     scale_y = target_width  # / NATIVE["width_y"]
     scale_z = target_height # / NATIVE["height_z"]
 
