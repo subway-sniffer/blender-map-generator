@@ -501,7 +501,10 @@ def toilet(item):
 
     # --- 3. SCALE FACTORS ---
     # Original size of the asset
-    NATIVE = { "length_x": 0.967, "width_y": 0.157, "height_z": 2.2 }
+    if collection_name == "toilet_both":
+        NATIVE = { "length_x": 1.934, "width_y": 0.157, "height_z": 2.2 }
+    else:
+        NATIVE = { "length_x": 0.967, "width_y": 0.157, "height_z": 2.2 }
 
     target_length, target_width, target_height = item["scale"]
     # Applying scale directly to the Empty container shapes the entire instanced collection
