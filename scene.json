@@ -69,6 +69,15 @@
     {
       "comment": "A ticket gate which requires a center point and its rotation degree. The scale value is barely needed.",
       "blend": "Gate.blend", "location": [10.0, 2.0 , 5.0], "rotation_z": 0.0, "scale": [1.0, 1.0, 1.0]
+    },
+
+    {
+      "comment": "This is a toilet door only for men.",
+      "blend": "Toilet_Men.blend", "location": [1.0, -2.0, 10.0], "rotation_z": 90.0, "scale": [1.0, 1.0, 1.0]
+    },
+    {
+      "comment": "This is a toilet door only for women.",
+      "blend": "Toilet_Women.blend", "location": [1.0, -2.0, 3.0], "rotation_z": 0.0, "scale": [1.0, 1.0, 1.0]
     }
   ]
 }
