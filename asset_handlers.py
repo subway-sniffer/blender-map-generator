@@ -434,7 +434,6 @@ def gate(item):
         print(f"Error: Collection '{collection_name}' not found. Make sure it is appended first.")
 
     # --- 2. APPLY LOCATION AND ROTATION ---
-    # --- 2. APPLY LOCATION AND ROTATION ---
     # Extract position and rotation from JSON
     loc_data = item["location"]
     rot_z_deg = item.get("rotation_z", 0.0) # Defaults to 0 if missing

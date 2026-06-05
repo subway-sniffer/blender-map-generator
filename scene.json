@@ -68,7 +68,7 @@
 
     {
       "comment": "A ticket gate which requires a center point and its rotation degree. The scale value is barely needed.",
-      "blend": "TicketGate.blend", "location": [10.0, 2.0 , 5.0], "rotation_z": 0.0, "scale": [1.0, 1.0, 1.0]
+      "blend": "Gate.blend", "location": [10.0, 2.0 , 5.0], "rotation_z": 0.0, "scale": [1.0, 1.0, 1.0]
     }
   ]
 }
