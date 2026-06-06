@@ -10,11 +10,7 @@ BASE_DIR = Path(bpy.path.abspath("//"))
 BLEND_PATH = BASE_DIR
 
 def stair(item):
-    mesh = bpy.data.meshes.new("Dynamic_Stair")
-    obj = bpy.data.objects.new("Dynamic_Stair_Obj", mesh)
-    bpy.context.collection.objects.link(obj)
-
-    bm = bmesh.new()
+    has_pillar = item.get("hasPillar", False)
 
     # 1. Parse your exact JSON inputs into clean mathutils Vector lists
     s1 = mathutils.Vector(item["start_line"][0])
@@ -24,74 +20,132 @@ def stair(item):
 
     total_height = float(item.get("target_height", 5.0))
     step_height = 0.18
-
     num_steps = max(1, round(total_height / step_height))
     actual_h = total_height / num_steps
 
-    # Setup Vertex Groups for Unity Engine separation
-    visual_group = obj.vertex_groups.new(name="Visual_Steps")
-    collision_group = obj.vertex_groups.new(name="Collision_Ramp")
 
-    # 2. Generate the physical solid steps (Visuals)
-    # Using linear interpolation (lerp) between start and end lines directly in world space
-    for i in range(num_steps):
-        ratio_start = i / num_steps
-        ratio_end = (i + 1) / num_steps
+    if has_pillar:
+        mesh = bpy.data.meshes.new("Inst_Stair_Pillar_mesh")
+        obj = bpy.data.objects.new("Inst_Stair_Pillar", mesh)
+        bpy.context.collection.objects.link(obj)
 
-        # Calculate the 4 base points on the ground level (Z = s1.z)
-        p_start_1 = s1.lerp(e1, ratio_start)
-        p_start_2 = s2.lerp(e2, ratio_start)
-        p_end_1 = s1.lerp(e1, ratio_end)
-        p_end_2 = s2.lerp(e2, ratio_end)
+        bm = bmesh.new()
 
-        # The 4 bottom corners of this specific step pillar (solid down to base Z)
-        b_fl = (p_start_1.x, p_start_1.y, s1.z)
-        b_fr = (p_start_2.x, p_start_2.y, s2.z)
-        b_br = (p_end_2.x,   p_end_2.y,   s2.z)
-        b_bl = (p_end_1.x,   p_end_1.y,   s1.z)
+        # Setup Vertex Groups for Unity Engine separation
+        visual_group = obj.vertex_groups.new(name="Visual_Steps")
+        collision_group = obj.vertex_groups.new(name="Collision_Ramp")
 
-        # The 4 top corners of this specific step pillar
-        z_top = s1.z + ((i + 1) * actual_h)
-        t_fl = (p_start_1.x, p_start_1.y, z_top)
-        t_fr = (p_start_2.x, p_start_2.y, z_top)
-        t_br = (p_end_2.x,   p_end_2.y,   z_top)
-        t_bl = (p_end_1.x,   p_end_1.y,   z_top)
+        # 2. Generate the physical solid steps (Visuals)
+        # Using linear interpolation (lerp) between start and end lines directly in world space
+        for i in range(num_steps):
+            ratio_start = i / num_steps
+            ratio_end = (i + 1) / num_steps
 
-        coords = [b_fl, b_fr, b_br, b_bl, t_fl, t_fr, t_br, t_bl]
+            # Calculate the 4 base points on the ground level (Z = s1.z)
+            p_start_1 = s1.lerp(e1, ratio_start)
+            p_start_2 = s2.lerp(e2, ratio_start)
+            p_end_1 = s1.lerp(e1, ratio_end)
+            p_end_2 = s2.lerp(e2, ratio_end)
 
-        step_verts = [bm.verts.new(c) for c in coords]
-        faces_indices = [(0,1,2,3), (4,5,6,7), (0,1,5,4), (2,3,7,6), (0,3,7,4), (1,2,6,5)]
-        for f_idx in faces_indices:
-            bm.faces.new([step_verts[j] for j in f_idx])
+            # The 4 bottom corners of this specific step pillar (solid down to base Z)
+            b_fl = (p_start_1.x, p_start_1.y, s1.z)
+            b_fr = (p_start_2.x, p_start_2.y, s2.z)
+            b_br = (p_end_2.x,   p_end_2.y,   s2.z)
+            b_bl = (p_end_1.x,   p_end_1.y,   s1.z)
 
-    # 3. Generate the flat hidden incline slope (Collision Ramp) using raw line endpoints
-    ramp_coords = [
-        (s1.x, s1.y, s1.z), (s2.x, s2.y, s2.z),
-        (e2.x, e2.y, e2.z), (e1.x, e1.y, e1.z)
-    ]
-    ramp_verts = [bm.verts.new(c) for c in ramp_coords]
-    bm.faces.new(ramp_verts)
+            # The 4 top corners of this specific step pillar
+            z_top = s1.z + ((i + 1) * actual_h)
+            t_fl = (p_start_1.x, p_start_1.y, z_top)
+            t_fr = (p_start_2.x, p_start_2.y, z_top)
+            t_br = (p_end_2.x,   p_end_2.y,   z_top)
+            t_bl = (p_end_1.x,   p_end_1.y,   z_top)
 
-    # Clean up the bmesh structure
-    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.001)
-    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
-    bm.to_mesh(mesh)
-    bm.free()
-    mesh.update()
+            coords = [b_fl, b_fr, b_br, b_bl, t_fl, t_fr, t_br, t_bl]
 
-    # 4. Sort vertices into their respective Unity Engine groups based on the actual endpoints
-    for vertex in obj.data.vertices:
-        if math.isclose(vertex.co.x, e1.x, abs_tol=0.05) or math.isclose(vertex.co.x, e2.x, abs_tol=0.05):
-            collision_group.add([vertex.index], 1.0, 'ADD')
-        else:
-            visual_group.add([vertex.index], 1.0, 'ADD')
+            step_verts = [bm.verts.new(c) for c in coords]
+            faces_indices = [(0,1,2,3), (4,5,6,7), (0,1,5,4), (2,3,7,6), (0,3,7,4), (1,2,6,5)]
+            for f_idx in faces_indices:
+                bm.faces.new([step_verts[j] for j in f_idx])
+
+        # 3. Generate the flat hidden incline slope (Collision Ramp) using raw line endpoints
+        ramp_coords = [
+            (s1.x, s1.y, s1.z), (s2.x, s2.y, s2.z),
+            (e2.x, e2.y, e2.z), (e1.x, e1.y, e1.z)
+        ]
+        ramp_verts = [bm.verts.new(c) for c in ramp_coords]
+        bm.faces.new(ramp_verts)
+
+        # Clean up the bmesh structure
+        bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.001)
+        bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+        bm.to_mesh(mesh)
+        bm.free()
+        mesh.update()
+
+        # 4. Sort vertices into their respective Unity Engine groups based on the actual endpoints
+        for vertex in obj.data.vertices:
+            if math.isclose(vertex.co.x, e1.x, abs_tol=0.05) or math.isclose(vertex.co.x, e2.x, abs_tol=0.05):
+                collision_group.add([vertex.index], 1.0, 'ADD')
+            else:
+                visual_group.add([vertex.index], 1.0, 'ADD')
+
+    else:
+        # 2. Calculate spatial dimensions
+        # Width is determined by the length of the start line
+        stair_width = (s2 - s1).length
+
+        # Find the center points of the start line and end line
+        start_center = (s1 + s2) / 2.0
+        end_center = (e1 + e2) / 2.0
+
+        # Horizontal run vector (ignoring Z for the flat distance calculation)
+        run_vector = mathutils.Vector((end_center.x - start_center.x, end_center.y - start_center.y, 0.0))
+        total_run = run_vector.length
+
+        # Calculate global Z rotation based on the direction the stair climbs
+        rotation_z = math.atan2(run_vector.y, run_vector.x)
+
+        # 3. Ergonomics & Step Math (Aiming for ~0.18m standard rise)
+        ideal_rise = 0.18
+        step_count = max(1, round(total_height / ideal_rise))
+
+        step_height = total_height / step_count
+        step_depth = total_run / step_count
+
+        # --- CREATE VISUAL STAIRCASE ---
+        # Create a base step (centered at origin momentarily for clean scaling)
+        bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0, 0))
+        visual_stair = bpy.context.active_object
+        visual_stair.name = "Inst_Stair_Only"
+
+        # Scale dimensions (Cube size 1.0 means dimensions equal scale)
+        visual_stair.dimensions = (step_depth, stair_width, step_height)
+        bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+
+        # Shift geometry data so the step pivots from its bottom-back-center edge
+        for vertex in visual_stair.data.vertices:
+            vertex.co.x += step_depth / 2.0
+            vertex.co.z += step_height / 2.0
+
+        # Add Array Modifier to build the rest of the steps
+        array_mod = visual_stair.modifiers.new(name="Stair_Array", type='ARRAY')
+        array_mod.count = step_count
+        array_mod.use_relative_offset = False
+        array_mod.use_constant_offset = True
+        array_mod.constant_offset_displace = (step_depth, 0.0, step_height)
+
+        # Position and rotate the final visual staircase asset globally
+        visual_stair.location = start_center
+        visual_stair.rotation_euler = (0.0, 0.0, rotation_z)
+
+        bpy.ops.object.select_all(action='DESELECT')
+
+
 
 ESCALATOR_COUNTER = 0
 ESCALATOR_BALUSTRADE_THICKNESS = 0.04
 ESCALATOR_HANDRAIL_RADIUS = 0.035
 ESCALATOR_MIN_STEP_WIDTH = 0.2
-
-
 def _lerp_unclamped(a, b, t):
     return a + ((b - a) * t)
 

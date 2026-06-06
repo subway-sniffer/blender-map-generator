@@ -37,11 +37,20 @@
   ],
   "assets": [
     {
-      "comment": "Stairs with height, start_line and end_line",
+      "comment": "A stair with a pillar. This is the one that will be mainly used.",
       "blend": "Stair.blend",
+      "hasPillar": true,
       "target_height": 5.0,
       "start_line": [ [-358.576643, 31.675777, -15], [-352.22429, 31.258673, -15] ],
       "end_line": [ [-358.186144, 22.434032, -10], [-351.833791, 22.016929, -10] ]
+    },
+    {
+      "comment": "A stair WITHOUT a pillar. This is usually connected to the exit.",
+      "blend": "Stair.blend",
+      "hasPillar": false,
+      "target_height": 10.0,
+      "start_line": [ [-338.576643, 31.675777, -15], [-332.22429, 31.258673, -15] ],
+      "end_line": [ [-338.186144, 22.434032, -10], [-331.833791, 22.016929, -10] ]
     },
 
     {
@@ -66,10 +75,6 @@
       "blend": "Subway.blend", "start": [-151.134088, 44.841655, -7], "end": [-120.134088, 30.841655, -7], "rotation_z": 0.0, "scale": [8.0, 1.0, 1.0]
     },
 
-    {
-      "comment": "A ticket gate which requires a center point and its rotation degree. The scale value is barely needed.",
-      "blend": "Gate.blend", "location": [10.0, 2.0 , 5.0], "rotation_z": 0.0, "scale": [1.0, 1.0, 1.0]
-    },
 
     {
       "comment": "This is a toilet door only for men.",
@@ -93,6 +98,11 @@
     },
     {
       "blend": "Exit.blend", "number": "15", "location": [5.0, 0.0, 0.0], "rotation_z": 90.0, "scale": [5.0, 5.0, 5.0]
+    },
+
+    {
+      "comment": "A ticket gate which requires a center point and its rotation degree. The scale value is barely needed.",
+      "blend": "Gate.blend", "location": [10.0, 2.0 , 5.0], "rotation_z": 0.0, "scale": [1.0, 1.0, 1.0]
     }
   ]
 }
