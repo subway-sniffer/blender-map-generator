@@ -82,6 +82,17 @@
     {
       "comment": "This is toilet doors for both men and women.",
       "blend": "Toilet_Both.blend", "location": [1.0, -2.0, -3.0], "rotation_z": 0.0, "scale": [1.0, 1.0, 1.0]
+    },
+
+    {
+      "comment": "This is an exit number. You should specify the number as a string.",
+      "blend": "Exit.blend", "number": "1", "location": [5.0, -2.0, -3.0], "rotation_z": 0.0, "scale": [1.0, 1.0, 1.0]
+    },
+    {
+      "blend": "Exit.blend", "number": "7-1", "location": [5.0, -2.0, 0.0], "rotation_z": 85.0, "scale": [1.0, 1.0, 1.0]
+    },
+    {
+      "blend": "Exit.blend", "number": "15", "location": [5.0, 0.0, 0.0], "rotation_z": 90.0, "scale": [5.0, 5.0, 5.0]
     }
   ]
 }
