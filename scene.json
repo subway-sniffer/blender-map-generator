@@ -73,15 +73,15 @@
 
     {
       "comment": "This is a toilet door only for men.",
-      "blend": "Toilet_Men.blend", "location": [1.0, -2.0, 10.0], "rotation_z": 90.0, "scale": [1.0, 1.0, 1.0]
+      "blend": "Toilet.blend", "type": "Men", "location": [1.0, -2.0, 10.0], "rotation_z": 90.0, "scale": [1.0, 1.0, 1.0]
     },
     {
       "comment": "This is a toilet door only for women.",
-      "blend": "Toilet_Women.blend", "location": [1.0, -2.0, 3.0], "rotation_z": 180.0, "scale": [1.0, 1.0, 1.0]
+      "blend": "Toilet.blend", "type": "Women", "location": [1.0, -2.0, 3.0], "rotation_z": 180.0, "scale": [1.0, 1.0, 1.0]
     },
     {
       "comment": "This is toilet doors for both men and women.",
-      "blend": "Toilet_Both.blend", "location": [1.0, -2.0, -3.0], "rotation_z": 0.0, "scale": [1.0, 1.0, 1.0]
+      "blend": "Toilet.blend", "type": "Both", "location": [1.0, -2.0, -3.0], "rotation_z": 0.0, "scale": [1.0, 1.0, 1.0]
     },
 
     {

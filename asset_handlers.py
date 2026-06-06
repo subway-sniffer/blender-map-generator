@@ -461,7 +461,7 @@ def toilet(item):
 
     # --- 1. HANDLE COLLECTION INSTANCING ---
     blend_file = os.path.join(BLEND_PATH, item["blend"])
-    collection_name = os.path.splitext(item["blend"])[0]
+    collection_name = item.get("type", os.path.splitext(item["blend"])[0])
     coll = bpy.data.collections.get(collection_name)
 
     # If the base collection isn't loaded yet, append it from the file
@@ -501,7 +501,7 @@ def toilet(item):
 
     # --- 3. SCALE FACTORS ---
     # Original size of the asset
-    if collection_name == "toilet_both":
+    if collection_name == "Both":
         NATIVE = { "length_x": 1.934, "width_y": 0.157, "height_z": 2.2 }
     else:
         NATIVE = { "length_x": 0.967, "width_y": 0.157, "height_z": 2.2 }

@@ -91,9 +91,7 @@ ASSET_REGISTRY = {
     "movingwalkway": asset_handlers.moving_walkway,
     "subway": asset_handlers.subway,
     "gate": asset_handlers.gate,
-    "toilet_men": asset_handlers.toilet,
-    "toilet_women": asset_handlers.toilet,
-    "toilet_both": asset_handlers.toilet,
+    "toilet": asset_handlers.toilet,
     "exit": asset_handlers.exit
 }
 
