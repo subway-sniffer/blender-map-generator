@@ -104,3 +104,52 @@ if "assets" in data:
         else:
             asset_handlers.generic(item, asset_name)
             #print(f"Warning: No match found for '{asset_name}'")
+
+
+# =========================================================================
+# STEP 3: PLACE WALLS for TICKET GATES
+# =========================================================================
+if "walls" in data:
+    for item in data["walls"]:
+        # Extract properties from the JSON item
+        name = item.get("name", "Unnamed_Wall")
+        vertices_list = item.get("vertices", [])
+        color = item.get("color", [1.0, 1.0, 1.0, 1.0])  # Fallback to white if missing
+
+        # Skip if vertices data is missing or incomplete
+        if len(vertices_list) < 4:
+            print(f"Skipping {name}: A wall needs exactly 4 vertices.")
+            continue
+
+        # 1. Create a new empty mesh and object container
+        mesh_data = bpy.data.meshes.new(f"{name}_mesh")
+        wall_obj = bpy.data.objects.new(name, mesh_data)
+
+        # 2. Link the new wall object to your active scene collection
+        bpy.context.collection.objects.link(wall_obj)
+
+        # 3. Define the face connection loop (0 -> 1 -> 2 -> 3)
+        faces = [(0, 1, 2, 3)]
+        edges = []
+
+        # 4. Generate the actual wall geometry
+        mesh_data.from_pydata(vertices_list, edges, faces)
+        mesh_data.update()
+
+        # 5. Create and assign the material using the JSON color
+        mat = bpy.data.materials.new(name=f"Mat_{name}")
+
+        # Set the viewport color so it is visible right away in Solid View!
+        mat.diffuse_color = color
+
+        # Set the actual material node color (for Material Preview / Render modes)
+        if mat.use_nodes and mat.node_tree:
+            nodes = mat.node_tree.nodes
+            principled = next((n for n in nodes if n.type == 'BSDF_PRINCIPLED'), None)
+            if principled:
+                principled.inputs['Base Color'].default_value = color
+
+        # Append the completed material to the wall mesh
+        wall_obj.data.materials.append(mat)
+
+    print("All walls from data successfully generated with custom viewport colors!")
