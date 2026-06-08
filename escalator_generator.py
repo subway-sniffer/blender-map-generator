@@ -95,7 +95,7 @@ def generate_escalator(
     width=1.0,               # 스텝 폭 (m)
     top_landing=1.0,         # 상단 평탄 구간 길이 (m)
     bot_landing=1.0,         # 하단 평탄 구간 길이 (m)
-    step_rise_target=0.2,    # 한 스텝 높이 목표 (실측 200mm)
+    step_rise_target=0.4,    # 한 스텝 높이 목표 (실측 200mm) -> 400mm
     handrail_height=1.0,     # 발판 면에서 핸드레일까지 높이 (m)
     balustrade_thickness=0.04,
     handrail_radius=0.035,
