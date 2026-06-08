@@ -148,14 +148,15 @@ def generate_escalator(
         x0 = i * s_run
         x1 = (i + 1) * s_run
 
+        yellow_line_thickness = 0.1
+
         # tread (수평 발판)
-        tread_x0 = x0
+        tread_x0 = x0 + yellow_line_thickness
         tread_x1 = x1
         tread_z0 = z_top - step_thickness
         tread_z1 = z_top
 
-        before_faces = set(bm.faces)
-
+        before_step_faces = set(bm.faces)
         add_box(
             bm,
             tread_x0, tread_x1,
@@ -163,23 +164,23 @@ def generate_escalator(
             tread_z0, tread_z1
         )
 
-        # newly created faces
-        new_faces = [f for f in bm.faces if f not in before_faces]
-
-        # default = black step material
-        for f in new_faces:
+        # Apply black material ONLY to this specific step's new faces
+        new_step_faces = [f for f in bm.faces if f not in before_step_faces]
+        for f in new_step_faces:
             f.material_index = 0
 
-        # ------------------------------------------------
-        # yellow front safety strip
-        # detect the FRONT vertical face of the tread
-        # ------------------------------------------------
-        front_face = min(
-            new_faces,
-            key=lambda f: f.calc_center_median().x
+        # 2. Dedicated Yellow Safety Strip Box
+        before_yellow_faces = set(bm.faces)
+        add_box(
+            bm,
+            x0, x0 + yellow_line_thickness,
+            -width/2, width/2,
+            tread_z0, tread_z1
         )
-
-        front_face.material_index = 1
+        # Apply yellow material ONLY to this specific yellow strip's new faces
+        new_yellow_faces = [f for f in bm.faces if f not in before_yellow_faces]
+        for f in new_yellow_faces:
+            f.material_index = 1
 
         # riser (스텝 정면 수직면)
         z_bot = i * s_rise  # 이전 스텝 윗면 높이
