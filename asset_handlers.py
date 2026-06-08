@@ -517,7 +517,7 @@ def gate(item):
 
     obj.scale = (scale_x, scale_y, scale_z)
 
-
+    """
     # --- 4. Apply Material's Color ---
     # This will be applied for all assets in the scene
     # Loop through absolutely every UI Screen Layout in the project memory
@@ -534,13 +534,12 @@ def gate(item):
                         shading.color_type = 'TEXTURE'
                         
                         # Extra depth settings
-                        """
                         shading.show_specular_highlight = True
                         shading.show_shadows = True
                         shading.shadow_intensity = 0.4
                         shading.show_cavity = True
                         shading.cavity_type = 'BOTH'
-                        """
+    """
 
 def toilet(item):
 
