@@ -89,51 +89,62 @@ def stair(item):
             else:
                 visual_group.add([vertex.index], 1.0, 'ADD')
 
-    else:
-        # 2. Calculate spatial dimensions
-        # Width is determined by the length of the start line
-        stair_width = (s2 - s1).length
+    else: # without pillar
+        mesh = bpy.data.meshes.new("Inst_Stair_Only_mesh")
+        obj = bpy.data.objects.new("Inst_Stair_Only", mesh)
+        bpy.context.collection.objects.link(obj)
 
-        # Find the center points of the start line and end line
-        start_center = (s1 + s2) / 2.0
-        end_center = (e1 + e2) / 2.0
+        bm = bmesh.new()
 
-        # Horizontal run vector (ignoring Z for the flat distance calculation)
-        run_vector = mathutils.Vector((end_center.x - start_center.x, end_center.y - start_center.y, 0.0))
-        total_run = run_vector.length
-        step_depth = total_run / step_count
+        # Setup Vertex Groups (Cleaned up since collision ramp is removed)
+        visual_group = obj.vertex_groups.new(name="Visual_Steps")
 
-        # Calculate global Z rotation based on the direction the stair climbs
-        rotation_z = math.atan2(run_vector.y, run_vector.x)
+        # 2. Generate the independent floating steps
+        for i in range(step_count):
+            ratio_start = i / step_count
+            ratio_end = (i + 1) / step_count
 
+            # Calculate the 4 base points on the horizontal plane via lerp
+            p_start_1 = s1.lerp(e1, ratio_start)
+            p_start_2 = s2.lerp(e2, ratio_start)
+            p_end_1 = s1.lerp(e1, ratio_end)
+            p_end_2 = s2.lerp(e2, ratio_end)
 
-        # --- CREATE VISUAL STAIRCASE ---
-        # Create a base step (centered at origin momentarily for clean scaling)
-        bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0, 0))
-        visual_stair = bpy.context.active_object
-        visual_stair.name = "Inst_Stair_Only"
+            # NEW: Calculate the dynamic bottom and top Z heights for THIS specific step
+            z_bottom = s1.z + (i * actual_step_height)
+            z_top = s1.z + ((i + 1) * actual_step_height)
 
-        # Scale dimensions (Cube size 1.0 means dimensions equal scale)
-        visual_stair.dimensions = (step_depth, stair_width, actual_step_height)
-        bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+            # The 4 bottom corners of this specific step box (Now floating!)
+            b_fl = (p_start_1.x, p_start_1.y, z_bottom)
+            b_fr = (p_start_2.x, p_start_2.y, z_bottom)
+            b_br = (p_end_2.x,   p_end_2.y,   z_bottom)
+            b_bl = (p_end_1.x,   p_end_1.y,   z_bottom)
 
-        # Shift geometry data so the step pivots from its bottom-back-center edge
-        for vertex in visual_stair.data.vertices:
-            vertex.co.x += step_depth / 2.0
-            vertex.co.z += actual_step_height / 2.0
+            # The 4 top corners of this specific step box
+            t_fl = (p_start_1.x, p_start_1.y, z_top)
+            t_fr = (p_start_2.x, p_start_2.y, z_top)
+            t_br = (p_end_2.x,   p_end_2.y,   z_top)
+            t_bl = (p_end_1.x,   p_end_1.y,   z_top)
 
-        # Add Array Modifier to build the rest of the steps
-        array_mod = visual_stair.modifiers.new(name="Stair_Array", type='ARRAY')
-        array_mod.count = step_count
-        array_mod.use_relative_offset = False
-        array_mod.use_constant_offset = True
-        array_mod.constant_offset_displace = (step_depth, 0.0, actual_step_height)
+            coords = [b_fl, b_fr, b_br, b_bl, t_fl, t_fr, t_br, t_bl]
 
-        # Position and rotate the final visual staircase asset globally
-        visual_stair.location = start_center
-        visual_stair.rotation_euler = (0.0, 0.0, rotation_z)
+            step_verts = [bm.verts.new(c) for c in coords]
+            faces_indices = [(0,1,2,3), (4,5,6,7), (0,1,5,4), (2,3,7,6), (0,3,7,4), (1,2,6,5)]
+            for f_idx in faces_indices:
+                bm.faces.new([step_verts[j] for j in f_idx])
 
-        bpy.ops.object.select_all(action='DESELECT')
+        # 3. Hidden incline slope section REMOVED entirely
+
+        # Clean up the bmesh structure
+        bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.001)
+        bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+        bm.to_mesh(mesh)
+        bm.free()
+        mesh.update()
+
+        # 4. Assign all generated step vertices into the visual vertex group
+        for vertex in obj.data.vertices:
+            visual_group.add([vertex.index], 1.0, 'ADD')
 
 
 
