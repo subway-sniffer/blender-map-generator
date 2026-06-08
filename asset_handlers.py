@@ -511,6 +511,31 @@ def gate(item):
 
     obj.scale = (scale_x, scale_y, scale_z)
 
+
+    # --- 4. Apply Material's Color ---
+    # This will be applied for all assets in the scene
+    # Loop through absolutely every UI Screen Layout in the project memory
+    for screen in bpy.data.screens:
+        for area in screen.areas:
+            if area.type == 'VIEW_3D':
+                for space in area.spaces:
+                    if space.type == 'VIEW_3D':
+                        shading = space.shading
+                        
+                        # Apply your Material Preview configurations
+                        shading.type = 'SOLID'
+                        shading.light = 'MATCAP'
+                        shading.color_type = 'TEXTURE'
+                        
+                        # Extra depth settings
+                        """
+                        shading.show_specular_highlight = True
+                        shading.show_shadows = True
+                        shading.shadow_intensity = 0.4
+                        shading.show_cavity = True
+                        shading.cavity_type = 'BOTH'
+                        """
+
 def toilet(item):
 
     # --- 1. HANDLE COLLECTION INSTANCING ---
