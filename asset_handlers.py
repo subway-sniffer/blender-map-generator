@@ -18,10 +18,10 @@ def stair(item):
     e1 = mathutils.Vector(item["end_line"][0])
     e2 = mathutils.Vector(item["end_line"][1])
 
-    total_height = float(item.get("target_height", 5.0))
+    target_height = float(item.get("target_height", 5.0))
     step_height = 0.18
-    num_steps = max(1, round(total_height / step_height))
-    actual_h = total_height / num_steps
+    num_steps = max(1, round(target_height / step_height))
+    actual_h = target_height / num_steps
 
 
     if has_pillar:
@@ -107,9 +107,9 @@ def stair(item):
 
         # 3. Ergonomics & Step Math (Aiming for ~0.18m standard rise)
         ideal_rise = 0.18
-        step_count = max(1, round(total_height / ideal_rise))
+        step_count = max(1, round(target_height / ideal_rise))
 
-        step_height = total_height / step_count
+        step_height = target_height / step_count
         step_depth = total_run / step_count
 
         # --- CREATE VISUAL STAIRCASE ---
