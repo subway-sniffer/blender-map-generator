@@ -157,4 +157,6 @@ if "walls" in data:
         wall_solidify.thickness = 0.1
         wall_solidify.offset = 0.0  # Centers the thickness on the vertices
 
+        wall_obj.scale = (1.0, 1.0, 2.0)
+
     print("All walls from data successfully generated with custom viewport colors!")
