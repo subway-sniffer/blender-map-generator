@@ -71,8 +71,8 @@ if "planes" in data:
         mesh.update()
 
         # Add Thickness
-        solidify_mod = obj3d.modifiers.new(name="Thickness", type='SOLIDIFY')
-        solidify_mod.thickness = 0.15
+        plane_solidify = obj3d.modifiers.new(name="Thickness", type='SOLIDIFY')
+        plane_solidify.thickness = 0.15
 
         # Apply Colors
         color = obj.get("color", [1.0, 1.0, 1.0, 1.0])
@@ -151,5 +151,10 @@ if "walls" in data:
 
         # Append the completed material to the wall mesh
         wall_obj.data.materials.append(mat)
+
+        # 6. Add Thickness specifically for Walls (Kept separate from planes)
+        wall_solidify = wall_obj.modifiers.new(name="Wall_Thickness_Mod", type='SOLIDIFY')
+        wall_solidify.thickness = 0.1
+        wall_solidify.offset = 0.0  # Centers the thickness on the vertices
 
     print("All walls from data successfully generated with custom viewport colors!")
