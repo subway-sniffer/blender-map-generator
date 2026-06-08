@@ -19,9 +19,9 @@ def stair(item):
     e2 = mathutils.Vector(item["end_line"][1])
 
     target_height = float(item.get("target_height", 5.0))
-    step_height = 0.18
-    num_steps = max(1, round(target_height / step_height))
-    actual_h = target_height / num_steps
+    step_height = 0.18 # Aiming for ~0.18m standard rise
+    step_count = max(1, round(target_height / step_height))
+    actual_step_height = target_height / step_count
 
 
     if has_pillar:
@@ -37,9 +37,9 @@ def stair(item):
 
         # 2. Generate the physical solid steps (Visuals)
         # Using linear interpolation (lerp) between start and end lines directly in world space
-        for i in range(num_steps):
-            ratio_start = i / num_steps
-            ratio_end = (i + 1) / num_steps
+        for i in range(step_count):
+            ratio_start = i / step_count
+            ratio_end = (i + 1) / step_count
 
             # Calculate the 4 base points on the ground level (Z = s1.z)
             p_start_1 = s1.lerp(e1, ratio_start)
@@ -54,7 +54,7 @@ def stair(item):
             b_bl = (p_end_1.x,   p_end_1.y,   s1.z)
 
             # The 4 top corners of this specific step pillar
-            z_top = s1.z + ((i + 1) * actual_h)
+            z_top = s1.z + ((i + 1) * actual_step_height)
             t_fl = (p_start_1.x, p_start_1.y, z_top)
             t_fr = (p_start_2.x, p_start_2.y, z_top)
             t_br = (p_end_2.x,   p_end_2.y,   z_top)
@@ -101,16 +101,11 @@ def stair(item):
         # Horizontal run vector (ignoring Z for the flat distance calculation)
         run_vector = mathutils.Vector((end_center.x - start_center.x, end_center.y - start_center.y, 0.0))
         total_run = run_vector.length
+        step_depth = total_run / step_count
 
         # Calculate global Z rotation based on the direction the stair climbs
         rotation_z = math.atan2(run_vector.y, run_vector.x)
 
-        # 3. Ergonomics & Step Math (Aiming for ~0.18m standard rise)
-        ideal_rise = 0.18
-        step_count = max(1, round(target_height / ideal_rise))
-
-        step_height = target_height / step_count
-        step_depth = total_run / step_count
 
         # --- CREATE VISUAL STAIRCASE ---
         # Create a base step (centered at origin momentarily for clean scaling)
@@ -119,20 +114,20 @@ def stair(item):
         visual_stair.name = "Inst_Stair_Only"
 
         # Scale dimensions (Cube size 1.0 means dimensions equal scale)
-        visual_stair.dimensions = (step_depth, stair_width, step_height)
+        visual_stair.dimensions = (step_depth, stair_width, actual_step_height)
         bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
 
         # Shift geometry data so the step pivots from its bottom-back-center edge
         for vertex in visual_stair.data.vertices:
             vertex.co.x += step_depth / 2.0
-            vertex.co.z += step_height / 2.0
+            vertex.co.z += actual_step_height / 2.0
 
         # Add Array Modifier to build the rest of the steps
         array_mod = visual_stair.modifiers.new(name="Stair_Array", type='ARRAY')
         array_mod.count = step_count
         array_mod.use_relative_offset = False
         array_mod.use_constant_offset = True
-        array_mod.constant_offset_displace = (step_depth, 0.0, step_height)
+        array_mod.constant_offset_displace = (step_depth, 0.0, actual_step_height)
 
         # Position and rotate the final visual staircase asset globally
         visual_stair.location = start_center
