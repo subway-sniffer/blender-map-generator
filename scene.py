@@ -132,30 +132,8 @@ if "walls" in data:
         faces = [(0, 1, 2, 3)]
         edges = []
 
-        # 4. Generate the actual wall geometry (with custom height scaling)
-        multiplier = 2.0
-
-        # Find the floor baseline and the top baseline of the wall data
-        z_coords = [v[2] for v in vertices_list]
-        min_z = min(z_coords)
-        max_z = max(z_coords)
-        original_height = max_z - min_z
-
-        # Rebuild the vertices based on the multiplier
-        scaled_vertices = []
-        for v in vertices_list:
-            x, y, z = v[0], v[1], v[2]
-
-            if z == max_z:
-                # Calculate the new height cleanly relative to its base floor level
-                new_z = min_z + (original_height * multiplier)
-            else:
-                new_z = z # Bottom vertices stay exactly where they are
-
-            scaled_vertices.append((x, y, new_z))
-
-        # Feed the scaled raw vertices into the mesh data
-        mesh_data.from_pydata(scaled_vertices, edges, faces)
+        # 4. Generate the actual wall geometry
+        mesh_data.from_pydata(vertices_list, edges, faces)
         mesh_data.update()
 
         # 5. Create and assign the material using the JSON color
