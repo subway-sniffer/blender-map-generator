@@ -267,6 +267,41 @@ def generate_escalator(
     build_handrail(-1)
 
     # ================================================================
+    # 3-b. 중앙 칸막이 패널  [추가]
+    #      폭이 넓을 때만 생성. 좌우 발루스트레이드와 동일 프로파일.
+    # ================================================================
+    center_min_width = 1.6   # 이 폭(m) 이상일 때만 중앙 패널 생성
+
+    if width >= center_min_width:
+        bm_c = bmesh.new()
+        y_in = -balustrade_thickness / 2
+        y_out = +balustrade_thickness / 2
+
+        # 측면 프로파일 (좌우 패널과 동일)
+        bottom_path = [
+            (-bot_landing, 0),
+            (0, 0),
+            (run, rise),
+            (run + top_landing, rise),
+        ]
+        top_path = [(x, z + handrail_height) for (x, z) in bottom_path]
+        outline = bottom_path + list(reversed(top_path))
+
+        inner_verts = [bm_c.verts.new((x, y_in, z)) for (x, z) in outline]
+        outer_verts = [bm_c.verts.new((x, y_out, z)) for (x, z) in outline]
+
+        bm_c.faces.new(inner_verts)
+        bm_c.faces.new(outer_verts)
+
+        n = len(outline)
+        for i in range(n):
+            ni = (i + 1) % n
+            bm_c.faces.new([inner_verts[i], outer_verts[i],
+                            outer_verts[ni], inner_verts[ni]])
+
+        bm_to_object(bm_c, f"{name}_Balustrade_C", coll, materials=[mat_balu])
+
+    # ================================================================
     # 4. 원점 이동
     # ================================================================
 
